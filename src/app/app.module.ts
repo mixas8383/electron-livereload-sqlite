@@ -18,6 +18,8 @@ import { ElectronService } from './providers/electron.service';
 import { WebviewDirective } from './directives/webview.directive';
 
 import { AppComponent } from './app.component';
+import {LdbService} from './providers/ldb/ldb.service';
+
 import { HomeComponent } from './components/home/home.component';
 
 // AoT requires an exported function for factories
@@ -44,7 +46,7 @@ export function HttpLoaderFactory(http: HttpClient) {
       }
     })
   ],
-  providers: [ElectronService],
+  providers: [ElectronService,LdbService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

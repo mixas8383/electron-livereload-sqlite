@@ -2,15 +2,20 @@ import { app, BrowserWindow, screen } from 'electron';
 import * as path from 'path';
 import * as url from 'url';
 
-let win, serve;
+let win, serve,dd;
+let mainWindow, menu, dockMenu;
 const args = process.argv.slice(1);
-serve = args.some(val => val === '--serve');
+const electron = require('electron');
 
+const Menu = electron.Menu;
+
+serve = args.some(val => val === '--serve');
+let menuTemplate = require('./menuTemplate');
 try {
   require('dotenv').config();
 } catch {
   console.log('asar');
-}
+} 
 
 function createWindow() {
 
@@ -46,6 +51,64 @@ function createWindow() {
     // when you should delete the corresponding element.
     win = null;
   });
+  if (!menu) setMenu();
+  if (!dockMenu) setDock();
+
+  toggleFileTasks(true);
+  toggleNewWindowTask(false);
+}
+
+let toggleFileTasks = isEnabled => {
+  // The 'File' menu should only be available if there is an open window
+  menu.items
+    .find(item => item.label === 'File')
+    .submenu.items
+    .forEach(subItem => subItem.enabled = isEnabled);
+}
+let toggleNewWindowTask = isEnabled => {
+  // The 'New Window' task in the main menu and dock menu
+  // should only be available if there are no open windows
+  let newWindowMenu = menu.items
+    .find(item => item.label === 'Window')
+    .submenu.items
+    .find(subItem => subItem.label === 'New');
+
+  let dockWindowMenu = dockMenu.items
+    .find(item => item.label === 'New Window');
+
+  newWindowMenu.enabled = isEnabled;
+  dockWindowMenu.enabled = isEnabled;
+}
+
+let setMenu = () => {
+  // Set custom click handlers for menu tasks
+  let fileMenu = menuTemplate
+    .find(item => item.label === 'File');
+
+  fileMenu.submenu
+    .find(item => item.label === 'Open')
+    .click = () => mainWindow.webContents.send('open-file')
+
+  fileMenu.submenu
+    .find(item => item.label === 'Save As...')
+    .click = () => mainWindow.webContents.send('save-file')
+
+  menuTemplate
+    .find(item => item.label === 'Window')
+    .submenu
+    .find(subItem => subItem.label === 'New')
+    .click = () => createWindow()
+
+  menu = Menu.buildFromTemplate(menuTemplate);
+  Menu.setApplicationMenu(menu);
+}
+
+let setDock = () => {
+  // Create a 'New Window' task in the dock menu (OSX only)
+  dockMenu = Menu.buildFromTemplate([
+    { label: 'New Window', click: createWindow }
+  ]);
+  //electron.app.dock.setMenu(dockMenu);
 }
 
 try {

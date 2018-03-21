@@ -10,5 +10,15 @@
 </head>
 <body>
   <app-root>Loading...</app-root>
+  <script>
+    var electron = require('electron');
+    var knex = require('knex')({
+      client: 'sqlite3',
+      connection: {
+        filename: './maindb.db'
+      }
+
+    });
+  </script>
 </body>
 </html>
